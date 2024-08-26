@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Verification</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #otpSection, #verifyBtn { display: none; }
+    </style>
+</head>
+<body>
+
+    <h2>Login</h2>
+    
+    <div id="loginSection">
+        <input type="text" id="userID" placeholder="Enter your ID" />
+        <input type="password" id="userPass" placeholder="Enter your Password" />
+        <button id="sendOtpBtn">Send OTP</button>
+    </div>
+
+    <div id="otpSection">
+        <input type="text" id="otpInput" placeholder="Enter OTP" />
+        <button id="verifyBtn">Verify OTP</button>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+
+    <script>
+        // Firebase configuration
+        var firebaseConfig = {
+            apiKey: "AIzaSyA1lr7zhDaHAA7el31j4M1EPme_SmQ1lug",
+  authDomain: "phone-number-verifier-dba1d.firebaseapp.com",
+  projectId: "phone-number-verifier-dba1d",
+  storageBucket: "phone-number-verifier-dba1d.appspot.com",
+  messagingSenderId: "1037920876205",
+  appId: "1:1037920876205:web:82c79be582b97e16ea7824",
+  measurementId: "G-7EGX4F9QSJ"
+  appId: "1:1037920876205:web:82c79be582b97e16ea7824"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // List of users with IDs, passwords, and linked phone numbers
+        var users = [
+            { id: "IMPL3ld6gbpwv46gmkeroyalshetakari", password: "gmakepr1rys", phone: "+919880264381" },
+            { id: "AnotherUserID", password: "AnotherUserPassword", phone: "+91YYYYYYYYYY" }
+            // Add more users as needed
+        ];
+
+        document.getElementById('sendOtpBtn').addEventListener('click', function() {
+            var userID = document.getElementById('userID').value;
+            var userPass = document.getElementById('userPass').value;
+            
+            // Find the user in the list based on entered ID and password
+            var user = users.find(u => u.id === userID && u.password === userPass);
+            
+            if (user) {
+                // User found, start the OTP process with the linked phone number
+                var appVerifier = new firebase.auth.RecaptchaVerifier('sendOtpBtn', {
+                    'size': 'invisible',
+                    'callback': function(response) {
+                        // reCAPTCHA solved - will proceed with send OTP
+                        sendOTP(user.phone, appVerifier);
+                    }
+                });
+            } else {
+                alert("Invalid ID or Password!");
+            }
+        });
+
+        function sendOTP(phoneNumber, appVerifier) {
+            firebase.auth().signInWithPhoneNumber(phoneNumber, appVerifier)
+                .then(function (confirmationResult) {
+                    // OTP sent
+                    window.confirmationResult = confirmationResult;
+                    document.getElementById('loginSection').style.display = 'none';
+                    document.getElementById('otpSection').style.display = 'block';
+                }).catch(function (error) {
+                    console.log("Error sending OTP: " + error.message);
+                });
+        }
+
+        document.getElementById('verifyBtn').addEventListener('click', function() {
+            var otp = document.getElementById('otpInput').value;
+            confirmationResult.confirm(otp).then(function (result) {
+                // OTP verification successful
+                alert("Login successful!");
+                window.location.href = "mitapp://login_success"; // Redirect back to MIT App Inventor
+            }).catch(function (error) {
+                alert("Incorrect OTP. Please try again.");
+            });
+        });
+    </script>
+
+</body>
+</html>
